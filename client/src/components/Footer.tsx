@@ -1,19 +1,24 @@
 import React from 'react';
-import { GeoAlt, Telephone, Envelope } from 'react-bootstrap-icons';
+import { Link, useNavigate } from 'react-router-dom';
+import { GeoAlt, Telephone, Envelope, Youtube, Instagram, Facebook, ArrowUp } from 'react-bootstrap-icons';
 
 interface FooterProps {
-  onOpenLegalGuide: () => void;
   onOpenPostProperty: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenLegalGuide, onOpenPostProperty }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenPostProperty }) => {
+  const navigate = useNavigate();
+  const goTop = () => {
+    navigate('/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <footer className="bg-slate-950 text-slate-400 text-xs border-t border-slate-900 pt-16 pb-12">
+    <footer id="contact" className="bg-slate-950 text-slate-400 text-xs border-t border-slate-900 pt-16 pb-12 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
-          {/* Brand */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-4 shadow-sm sm:px-6 sm:py-5">
+            <Link to="/" className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-4 shadow-sm sm:px-6 sm:py-5">
               <img
                 src="/images/rj-land-ventures-mark.png?v=4"
                 alt="RJ Land Ventures logo"
@@ -29,85 +34,45 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalGuide, onOpenPostProp
                   Chennai Lands &amp; Flats
                 </span>
               </span>
-            </div>
+            </Link>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
               RJ Land Ventures is Chennai's premier real estate discovery platform specializing in verified CMDA and DTCP approved land parcels, coastal villa plots in ECR, and luxury flats across OMR and Greater Chennai.
             </p>
+            <button
+              type="button"
+              onClick={goTop}
+              className="hidden sm:inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 font-semibold text-xs transition-colors"
+              aria-label="Scroll to top"
+            >
+              <ArrowUp className="w-4 h-4" />
+              <span>Top</span>
+            </button>
           </div>
 
-          {/* Quick Chennai Corridors */}
           <div className="space-y-3">
-            <h4 className="font-bold text-white uppercase tracking-wider text-xs">
-              Key Chennai Corridors
-            </h4>
+            <h4 className="font-bold text-white uppercase tracking-wider text-xs">Explore</h4>
             <ul className="space-y-2">
-              <li>
-                <a href="#properties" className="hover:text-white transition-colors">
-                  OMR IT Expressway Plots
-                </a>
-              </li>
-              <li>
-                <a href="#properties" className="hover:text-white transition-colors">
-                  ECR Beachside Villa Lands
-                </a>
-              </li>
-              <li>
-                <a href="#properties" className="hover:text-white transition-colors">
-                  Guduvanchery & GST Plots
-                </a>
-              </li>
-              <li>
-                <a href="#properties" className="hover:text-white transition-colors">
-                  Anna Nagar Luxury Residences
-                </a>
-              </li>
-              <li>
-                <a href="#properties" className="hover:text-white transition-colors">
-                  Poonamallee Metro Townships
-                </a>
-              </li>
+              <li><Link to="/properties" className="hover:text-white transition-colors">All Properties</Link></li>
+              <li><Link to="/flats" className="hover:text-white transition-colors">Flats & Apartments</Link></li>
+              <li><Link to="/land" className="hover:text-white transition-colors">Residential Plots / Land</Link></li>
+              <li><Link to="/our-services" className="hover:text-white transition-colors">Our Services</Link></li>
             </ul>
           </div>
 
-          {/* Tools & Legal */}
           <div className="space-y-3">
-            <h4 className="font-bold text-white uppercase tracking-wider text-xs">
-              Tools & Due Diligence
-            </h4>
+            <h4 className="font-bold text-white uppercase tracking-wider text-xs">Key Chennai Corridors</h4>
             <ul className="space-y-2">
-              <li>
-                <a href="#properties" className="hover:text-white transition-colors">
-                  Browse All Chennai Listings
-                </a>
-              </li>
-              <li>
-                <a href="#virtual-tour" className="hover:text-white transition-colors">
-                  Take Virtual Tours
-                </a>
-              </li>
-              <li>
-                <button onClick={onOpenLegalGuide} className="hover:text-white transition-colors text-left">
-                  Computerized Patta Verification
-                </button>
-              </li>
-              <li>
-                <button onClick={onOpenLegalGuide} className="hover:text-white transition-colors text-left">
-                  30-Year EC Search on TNREGINET
-                </button>
-              </li>
-              <li>
-                <button onClick={onOpenPostProperty} className="text-amber-400 hover:text-amber-300 font-semibold text-left">
-                  Sell Your Chennai Property
-                </button>
-              </li>
+              <li><Link to="/locations/omr-corridor" className="hover:text-white transition-colors">OMR IT Expressway Plots</Link></li>
+              <li><Link to="/locations/ecr-coast" className="hover:text-white transition-colors">ECR Beachside Villa Lands</Link></li>
+              <li><Link to="/locations/gst-suburbs" className="hover:text-white transition-colors">Guduvanchery & GST Plots</Link></li>
+              <li><Link to="/locations/central-chennai" className="hover:text-white transition-colors">Anna Nagar Luxury Residences</Link></li>
+              <li><Link to="/locations/west-chennai" className="hover:text-white transition-colors">Poonamallee Metro Townships</Link></li>
+              <li><Link to="/locations/south-chennai" className="hover:text-white transition-colors">South Chennai (Velachery / Medavakkam)</Link></li>
             </ul>
           </div>
 
-          {/* Chennai Desk & Direct Assistance */}
           <div className="space-y-3">
-            <h4 className="font-bold text-white uppercase tracking-wider text-xs">
-              Chennai Advisory Desk
-            </h4>
+            <h4 className="font-bold text-white uppercase tracking-wider text-xs">Chennai Advisory Desk</h4>
             <div className="space-y-2.5 text-slate-400">
               <div className="flex items-start gap-2">
                 <GeoAlt className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -115,20 +80,37 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegalGuide, onOpenPostProp
               </div>
               <div className="flex items-center gap-2">
                 <Telephone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span className="font-mono text-white">+91 44 2855 0100 · WhatsApp +91 63004 09615</span>
+                <span className="font-mono text-white">+91 6300 409 615</span>
               </div>
               <div className="flex items-center gap-2">
                 <Envelope className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>chennai@singararealties.com</span>
+                <span>chennai@rjlandventures.com</span>
               </div>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button onClick={onOpenPostProperty} className="text-amber-400 hover:text-amber-300 font-semibold text-left">Sell Your Property</button>
+              </div>
+              <div className="flex items-center gap-3 pt-2">
+                <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube" className="p-2 rounded-lg bg-[#FF0000] text-white hover:opacity-90 transition-opacity"><Youtube className="w-4 h-4" /></a>
+                <a href="https://www.instagram.com/rjlandventures?vrfl=MWt6dmQyNGJoOXhsaA==" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" className="p-2 rounded-lg bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white hover:opacity-90 transition-opacity"><Instagram className="w-4 h-4" /></a>
+                <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" className="p-2 rounded-lg bg-[#1877F2] text-white hover:opacity-90 transition-opacity"><Facebook className="w-4 h-4" /></a>
+              </div>
+              <button
+                type="button"
+                onClick={goTop}
+                className="sm:hidden inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 font-semibold text-xs transition-colors pt-1"
+                aria-label="Scroll to top"
+              >
+                <ArrowUp className="w-4 h-4" />
+                <span>Top</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-          <div>
-            © {new Date().getFullYear()} RJ Land Ventures. All rights reserved.
+          <div>© {new Date().getFullYear()} RJ Land Ventures. All rights reserved.</div>
+          <div className="flex items-center gap-3">
+            <Link to="/properties" className="hover:text-white">Properties</Link>
           </div>
         </div>
       </div>

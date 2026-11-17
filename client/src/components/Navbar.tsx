@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, Heart, HeartFill, Lock, List, PlusLg, XLg } from 'react-bootstrap-icons';
 
 interface NavbarProps {
@@ -9,9 +10,11 @@ interface NavbarProps {
 }
 
 const NAV_LINKS = [
-  { href: '#properties', label: 'Explore Properties' },
-  { href: '#neighborhoods', label: 'Chennai Hotspots' },
-  { href: '#how-it-works', label: 'How It Works' },
+  { href: '/properties', label: 'Explore Properties' },
+  { href: '/flats', label: 'Flats' },
+  { href: '/land', label: 'Land' },
+  { href: '/our-services', label: 'Our Services' },
+  { href: '/how-it-works', label: 'How It Works' },
 ] as const;
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,6 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -30,7 +34,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       if (event.key === 'Escape') setIsMenuOpen(false);
     };
 
-    // Close the mobile menu when the user clicks/taps anywhere outside the header.
     const handleOutsidePointerDown = (event: PointerEvent) => {
       const target = event.target as Node | null;
       if (target && !headerRef.current?.contains(target)) {
@@ -66,10 +69,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       ref={headerRef}
       className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs"
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 px-3 py-3 sm:gap-8 sm:px-6 sm:py-3.5">
-        {/* Zone 1: Logo mark + wordmark */}
-        <a
-          href="#"
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-6 sm:py-3.5">
+        <Link
+          to="/"
           onClick={() => setIsMenuOpen(false)}
           aria-label="RJ Land Ventures home"
           className="flex shrink-0 items-center gap-1.5 whitespace-nowrap sm:gap-2.5"
@@ -89,26 +91,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               Chennai Lands &amp; Flats
             </span>
           </span>
-        </a>
+        </Link>
 
-        {/* Zone 2: Desktop navigation links */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-600">
+        <nav className="hidden xl:flex items-center gap-5 text-sm font-medium text-slate-600">
           {NAV_LINKS.map((link) => (
-            <a
+            <Link
               key={link.href}
-              href={link.href}
+              to={link.href}
+              onClick={() => setIsMenuOpen(false)}
               className="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
-        {/* Zone 3: Saved, post property, and admin/menu actions */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button
-            onClick={onOpenAdminLogin}
-            className="hidden lg:inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200 whitespace-nowrap"
+            onClick={handleAdminLogin}
+            className="hidden xl:inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200 whitespace-nowrap"
             title="Admin login"
             aria-label="Admin login"
           >
@@ -146,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={() => setIsMenuOpen((open) => !open)}
-            className="lg:hidden p-2 sm:p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200"
+            className="xl:hidden p-2 sm:p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200"
             title={isMenuOpen ? 'Close menu' : 'Open menu'}
             aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isMenuOpen}
@@ -157,27 +158,26 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile menu */}
       {isMenuOpen && (
         <div
           id="mobile-nav-menu"
-          className="lg:hidden border-t border-slate-200 bg-white px-4 sm:px-6 py-3 shadow-lg"
+          className="xl:hidden border-t border-slate-200 bg-white px-4 sm:px-6 py-3 shadow-lg"
         >
           <nav className="max-w-7xl mx-auto flex flex-col">
             {NAV_LINKS.map((link) => (
-              <a
+              <Link
                 key={link.href}
-                href={link.href}
+                to={link.href}
                 onClick={() => setIsMenuOpen(false)}
                 className="flex items-center justify-between gap-3 px-2 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100 hover:text-slate-950 transition-colors"
               >
                 <span>{link.label}</span>
                 <ChevronRight className="w-4 h-4 text-slate-400" />
-              </a>
+              </Link>
             ))}
 
             <button
-              onClick={handleAdminLogin}
+              onClick={() => { setIsMenuOpen(false); navigate('/admin'); }}
               className="mt-3 flex w-full items-center justify-between gap-3 px-4 py-3 text-sm font-bold text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-slate-950 transition-colors"
             >
               <span className="flex items-center gap-2">

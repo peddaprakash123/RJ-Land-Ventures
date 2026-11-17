@@ -20,20 +20,35 @@ const getErrorMessage = async (response: Response): Promise<string> => {
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      ...buildHeaders(),
-      ...(init?.headers as Record<string, string> | undefined),
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      signal: init?.signal ?? controller.signal,
+      headers: {
+        ...buildHeaders(),
+        ...(init?.headers as Record<string, string> | undefined),
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response));
+    if (!response.ok) {
+      throw new Error(await getErrorMessage(response));
+    }
+
+    if (response.status === 204) return undefined as T;
+    return (await response.json()) as T;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Request timed out. Please check your network connection.');
+    }
+    if (error instanceof TypeError) {
+      throw new Error('Failed to fetch. Please check your network connection.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
 }
 
 export interface UploadedImage {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Property } from '../data/chennaiProperties';
-import { XLg, Heart, HeartFill, Trash3, ArrowRight, GeoAlt } from 'react-bootstrap-icons';
+import { openPropertyWhatsApp } from '../utils/whatsapp';
+import { XLg, Heart, HeartFill, Trash3, ArrowRight, GeoAlt, Whatsapp, Share } from 'react-bootstrap-icons';
 
 interface SavedPropertiesDrawerProps {
   isOpen: boolean;
@@ -20,6 +21,46 @@ export const SavedPropertiesDrawer: React.FC<SavedPropertiesDrawerProps> = ({
   onClearAll,
 }) => {
   if (!isOpen) return null;
+
+  const getPropertySlug = (prop: Property) =>
+    prop.title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+
+  const buildShortlistText = () => {
+    const origin = window.location.origin;
+    const lines = favorites.map((prop, idx) => {
+      const url = `${origin}/property/${getPropertySlug(prop)}`;
+      return `${idx + 1}. ${prop.title}\n   ${prop.priceDisplay} · ${prop.locality}\n   ${url}`;
+    });
+    return `Shortlisted Chennai Properties (${favorites.length})\n\n${lines.join('\n\n')}`;
+  };
+
+  const handleShareAll = async () => {
+    const text = buildShortlistText();
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Shortlisted Chennai Properties', text });
+        return;
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      window.prompt('Copy shortlisted properties:', text);
+    }
+  };
+
+  const handleWhatsAppAll = () => {
+    const text = buildShortlistText();
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/60 backdrop-blur-xs flex justify-end">
@@ -128,19 +169,37 @@ export const SavedPropertiesDrawer: React.FC<SavedPropertiesDrawerProps> = ({
 
         {/* Footer */}
         {favorites.length > 0 && (
-          <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-            <button
-              onClick={onClearAll}
-              className="text-xs text-slate-500 hover:text-rose-600 transition-colors"
-            >
-              Clear All ({favorites.length})
-            </button>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              Back to Catalog
-            </button>
+          <div className="p-4 bg-slate-50 border-t border-slate-200 space-y-3">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleWhatsAppAll}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+              >
+                <Whatsapp className="w-4 h-4" />
+                <span>WhatsApp</span>
+              </button>
+              <button
+                onClick={handleShareAll}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs font-semibold text-slate-700 bg-transparent border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <Share className="w-4 h-4" />
+                <span>Share</span>
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={onClearAll}
+                className="text-xs text-slate-500 hover:text-rose-600 transition-colors"
+              >
+                Clear All ({favorites.length})
+              </button>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                Back to Catalog
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -2,9 +2,9 @@ export interface Property {
   id: string;
   title: string;
   type: 'plot' | 'flat';
-  category: 'Residential Plot' | 'Luxury Flat' | 'Gated Community Villa Plot' | 'High-Rise Apartment' | 'Commercial Land' | 'Boutique Flat';
+  category: string;
   locality: string;
-  zone: 'OMR Corridor' | 'ECR Coast' | 'Central Chennai' | 'South Chennai' | 'West Chennai' | 'GST & Suburbs';
+  zone: string;
   address: string;
   price: number; // in INR
   priceDisplay: string;

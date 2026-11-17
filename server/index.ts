@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT || 4000);
 const MONGODB_URI = process.env.MONGODB_URI;
-const MONGODB_DB = process.env.MONGODB_DB || 'singara_realties';
+const MONGODB_DB = process.env.MONGODB_DB || 'rj_land_ventures';
 const API_KEY = process.env.API_KEY?.trim() || '';
 const CLIENT_ORIGINS = (process.env.CLIENT_ORIGIN || 'http://localhost:3000,http://127.0.0.1:3000')
   .split(',')

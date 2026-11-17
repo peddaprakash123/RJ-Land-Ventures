@@ -7,28 +7,14 @@
  */
 export const ADMIN_PASSWORD = 'prakash@123';
 
-const ADMIN_SESSION_KEY = 'singara_admin_session';
+let adminAuthed = false;
 
-export const hasAdminSession = (): boolean => {
-  try {
-    return sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
-  } catch {
-    return false;
-  }
-};
+export const hasAdminSession = (): boolean => adminAuthed;
 
 export const startAdminSession = (): void => {
-  try {
-    sessionStorage.setItem(ADMIN_SESSION_KEY, 'true');
-  } catch {
-    // sessionStorage unavailable — the in-memory React state still works for this visit.
-  }
+  adminAuthed = true;
 };
 
 export const endAdminSession = (): void => {
-  try {
-    sessionStorage.removeItem(ADMIN_SESSION_KEY);
-  } catch {
-    // Ignore storage errors on logout.
-  }
+  adminAuthed = false;
 };

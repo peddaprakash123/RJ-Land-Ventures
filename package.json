@@ -7,10 +7,12 @@
     "dev": "vite --port=3000 --host=0.0.0.0 client",
     "build": "vite build client",
     "preview": "vite preview client",
+    "lint": "tsc -p client/tsconfig.json --noEmit",
     "server": "tsx server/index.ts",
-    "server:dev": "tsx watch server/index.ts",
-    "clean": "rm -rf client/dist dist server.js",
-    "lint": "tsc -p client/tsconfig.json --noEmit"
+    "clean": "rm -rf client/dist dist server.js"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-win32-x64-msvc": "1.2.19"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -23,6 +25,7 @@
     "react": "^19.0.1",
     "react-bootstrap-icons": "^1.11.6",
     "react-dom": "^19.0.1",
+    "react-router-dom": "^7.0.0",
     "vite": "^8.3.0"
   },
   "devDependencies": {

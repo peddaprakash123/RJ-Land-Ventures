@@ -17,10 +17,19 @@ export const LEGAL_DESK_WHATSAPP = normalizeWhatsAppNumber(
  * Builds the pre-filled WhatsApp message for a property card so the buyer
  * only has to press send in their own WhatsApp app.
  */
+const getPropertySlug = (property: Property) =>
+  property.title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+
 export const buildPropertyWhatsAppMessage = (property: Property): string => {
   const landShare = property.landUnits
     ? `${property.landUnits.grounds ?? 0} Ground (${property.landUnits.cents ?? 0} Cents)`
     : '';
+  const propertyUrl = `${window.location.origin}/property/${getPropertySlug(property)}`;
 
   const lines: string[] = [
     'Hello RJ Land Ventures WhatsApp Legal Desk,',
@@ -37,6 +46,7 @@ export const buildPropertyWhatsAppMessage = (property: Property): string => {
     `Facing: ${property.facing}`,
     `Approval: ${property.approval}`,
     `Patta Status: ${property.pattaStatus}`,
+    `Property Link: ${propertyUrl}`,
     ...(property.googleMapsUrl ? [`Google Maps: ${property.googleMapsUrl}`] : []),
     '',
     'Please share the legal documents, approval details and site visit information.',

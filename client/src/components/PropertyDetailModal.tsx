@@ -18,7 +18,10 @@ import {
   CarFront,
   CheckLg,
   BoxArrowUpRight,
-  Lock
+  Lock,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight
 } from 'react-bootstrap-icons';
 
 interface PropertyDetailModalProps {
@@ -38,6 +41,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Always open at the top of the details panel, even when switching between
@@ -47,6 +51,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
     setSelectedImageIndex(0);
     setCopiedLink(false);
+    setIsImageViewerOpen(false);
 
     const frame = requestAnimationFrame(() => {
       contentRef.current?.scrollTo({ top: 0, behavior: 'auto' });
@@ -58,12 +63,31 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   if (!isOpen || !property) return null;
 
   const showDetails = property.showDetailsInView !== false;
+  const gallery = property.gallery && property.gallery.length > 0 ? property.gallery : [property.image];
+  const hasMultipleImages = gallery.length > 1;
+
+  const goPrevImage = (e?: React.SyntheticEvent) => {
+    e?.stopPropagation();
+    setSelectedImageIndex((idx) => (idx - 1 + gallery.length) % gallery.length);
+  };
+
+  const goNextImage = (e?: React.SyntheticEvent) => {
+    e?.stopPropagation();
+    setSelectedImageIndex((idx) => (idx + 1) % gallery.length);
+  };
 
   const handleShare = async () => {
+    const slug = property.title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+    const propertyUrl = `${window.location.origin}/property/${encodeURIComponent(slug)}`;
     const shareData = {
       title: property.title,
       text: `${property.title} - ${property.priceDisplay}\n${property.address}`,
-      url: window.location.href,
+      url: propertyUrl,
     };
 
     if (navigator.share) {
@@ -76,11 +100,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     }
 
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(propertyUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
     } catch {
-      window.prompt('Copy this property link:', window.location.href);
+      window.prompt('Copy this property link:', propertyUrl);
     }
   };
 
@@ -191,22 +215,54 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           <div className={showDetails ? 'space-y-6' : 'hidden'}>
           {/* Image Gallery */}
           <div className="space-y-3">
-            <div className="relative aspect-16/9 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+            <div
+              className="relative aspect-16/9 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 cursor-zoom-in group"
+              onClick={() => setIsImageViewerOpen(true)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsImageViewerOpen(true);
+                }
+              }}
+              aria-label="Open image in full view"
+            >
               <img
-                src={property.gallery[selectedImageIndex] || property.image}
+                src={gallery[selectedImageIndex] || property.image}
                 alt={property.title}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover transition-all duration-300"
               />
+              {hasMultipleImages && (
+                <>
+                  <button
+                    type="button"
+                    onClick={goPrevImage}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center shadow-md transition-colors z-10"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goNextImage}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center shadow-md transition-colors z-10"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
               <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-xs px-2.5 py-1 rounded">
-                Photo {selectedImageIndex + 1} of {property.gallery.length}
+                Photo {selectedImageIndex + 1} of {gallery.length} · Click to view full
               </div>
             </div>
 
             {/* Thumbnail Strip */}
-            {property.gallery.length > 1 && (
+            {hasMultipleImages && (
               <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-                {property.gallery.map((img, idx) => (
+                {gallery.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImageIndex(idx)}
@@ -439,6 +495,65 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Fullscreen Image Viewer */}
+      {isImageViewerOpen && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/95 flex flex-col"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full image view"
+        >
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 text-white border-b border-white/10">
+            <button
+              onClick={() => setIsImageViewerOpen(false)}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-semibold transition-colors"
+              aria-label="Back to details"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+            <div className="text-xs sm:text-sm text-white/80 truncate px-3">
+              {property.title} · {selectedImageIndex + 1} / {gallery.length}
+            </div>
+            <button
+              onClick={() => setIsImageViewerOpen(false)}
+              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              aria-label="Close image view"
+            >
+              <XLg className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex-1 relative flex items-center justify-center p-4 sm:p-8 overflow-auto">
+            {hasMultipleImages && (
+              <>
+                <button
+                  type="button"
+                  onClick={goPrevImage}
+                  className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-10"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={goNextImage}
+                  className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-10"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
+            <img
+              src={gallery[selectedImageIndex] || property.image}
+              alt={property.title}
+              referrerPolicy="no-referrer"
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

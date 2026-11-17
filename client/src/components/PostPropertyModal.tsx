@@ -12,7 +12,6 @@ import {
   Camera,
   Trash3,
   BoxArrowUpRight,
-  Crosshair,
   CheckLg,
   Calendar3,
   Clock,
@@ -46,7 +45,7 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
   const [propertyType, setPropertyType] = useState<'plot' | 'flat'>('plot');
   const [title, setTitle] = useState('');
   const [locality, setLocality] = useState('');
-  const [zone, setZone] = useState<Property['zone']>('OMR Corridor');
+  const [zone, setZone] = useState<string>('OMR Corridor');
   const [address, setAddress] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [priceInLakhs, setPriceInLakhs] = useState<number>(45);
@@ -66,6 +65,27 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
   const [photoUploadError, setPhotoUploadError] = useState('');
   // Invalidates in-flight uploads when the modal closes or switches listings.
   const uploadTokenRef = useRef(0);
+
+  // Property category/highlight label shown on card image
+  const [propertyCategory, setPropertyCategory] = useState<string>('Premium Villa Plots');
+
+  const propertyCategoryOptions = [
+    'Gated Villa Communities',
+    'Premium Villa Plots',
+    'Luxury Residences',
+    'Residential Plots',
+    'Skyline Apartments',
+    'Boutique Residences',
+    'Premium Penthouses',
+    'Luxury Duplex Homes',
+    'Waterfront Villas',
+    'Independent Houses',
+    'Premium Farm Plots',
+    'Smart City Apartments',
+    'Luxury Row Houses',
+    'Garden Villas',
+    'Integrated Township Plots',
+  ];
 
   // Photos State
   const [photos, setPhotos] = useState<string[]>([
@@ -93,46 +113,6 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
 
   const isFlatRent = propertyType === 'flat' && propertyStatus === 'For Rent';
 
-  // Preset Chennai Locations with Google Maps
-  const chennaiLandmarks = [
-    {
-      name: 'OMR SIPCOT IT Park Phase-2, Siruseri',
-      zone: 'OMR Corridor' as const,
-      address: 'Opp. SIPCOT IT Park, Siruseri, Chennai - 603103',
-      mapUrl: 'https://www.google.com/maps/search/?api=1&query=SIPCOT+IT+Park+Siruseri+Chennai',
-    },
-    {
-      name: 'Akkarai Beach Road Junction, ECR',
-      zone: 'ECR Coast' as const,
-      address: 'Near Akkarai Beach, ECR, Chennai - 600119',
-      mapUrl: 'https://www.google.com/maps/search/?api=1&query=Akkarai+Beach+ECR+Chennai',
-    },
-    {
-      name: 'Anna Nagar 6th Avenue Roundtana',
-      zone: 'Central Chennai' as const,
-      address: '6th Avenue, Anna Nagar West, Chennai - 600101',
-      mapUrl: 'https://www.google.com/maps/search/?api=1&query=Anna+Nagar+Roundtana+Chennai',
-    },
-    {
-      name: 'Velachery Bypass near Phoenix MarketCity',
-      zone: 'South Chennai' as const,
-      address: 'Bypass Road, Velachery, Chennai - 600042',
-      mapUrl: 'https://www.google.com/maps/search/?api=1&query=Phoenix+Marketcity+Velachery+Chennai',
-    },
-    {
-      name: 'Guduvanchery near Kilambakkam KCBT Terminus',
-      zone: 'GST & Suburbs' as const,
-      address: 'Near KCBT Bus Terminus, GST Road, Chennai - 603202',
-      mapUrl: 'https://www.google.com/maps/search/?api=1&query=Kilambakkam+Bus+Terminus+Chennai',
-    },
-    {
-      name: 'Porur Junction near Ramachandra Hospital',
-      zone: 'West Chennai' as const,
-      address: 'Mount Poonamallee Road, Porur, Chennai - 600116',
-      mapUrl: 'https://www.google.com/maps/search/?api=1&query=Porur+Junction+Chennai',
-    },
-  ];
-
   // Populate the form whenever the modal opens — blank for a new listing,
   // or pre-filled with the selected property's details for editing.
   useEffect(() => {
@@ -147,6 +127,7 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
 
     if (!editingProperty) {
       setPropertyType('plot');
+      setPropertyCategory('Premium Villa Plots');
       setTitle('');
       setLocality('');
       setZone('OMR Corridor');
@@ -183,6 +164,7 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
 
     const property = editingProperty;
     setPropertyType(property.type);
+    setPropertyCategory(property.category || (property.type === 'plot' ? 'Premium Villa Plots' : 'Luxury Residences'));
     setTitle(property.title);
     setLocality(property.locality);
     setZone(property.zone);
@@ -271,35 +253,11 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSelectLandmark = (lm: typeof chennaiLandmarks[0]) => {
-    setLocality(lm.name);
-    setZone(lm.zone);
-    setAddress(lm.address);
-    setGoogleMapsUrl(lm.mapUrl);
-  };
-
-  const detectLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude.toFixed(6);
-          const lng = pos.coords.longitude.toFixed(6);
-          const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-          setGoogleMapsUrl(url);
-          if (!locality) {
-            setLocality(`Chennai GPS: ${lat}, ${lng}`);
-          }
-        },
-        () => {
-          alert('Could not fetch exact GPS location. You can pick from the suggested Chennai landmarks or paste a Google Maps link.');
-        }
-      );
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !locality) return;
+    const trimmedAddress = address.trim();
+    const derivedLocality = trimmedAddress.split(',')[0]?.trim() || locality.trim() || trimmedAddress;
+    if (!title || !trimmedAddress) return;
     if (!isEditing && !sellerPhone) return;
     if (isSubmitting || isUploadingPhotos) return;
 
@@ -328,12 +286,10 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
       id: editingProperty ? editingProperty.id : `user-prop-${Date.now()}`,
       title,
       type: propertyType,
-      category: propertyType === 'plot'
-        ? (landType as any || 'Gated Community Villa Plot')
-        : (underConstruction ? 'High-Rise Apartment' : 'Luxury Flat'),
-      locality,
+      category: propertyCategory,
+      locality: derivedLocality,
       zone,
-      address: address || `${locality}, Chennai`,
+      address: trimmedAddress,
       price: priceINR,
       priceDisplay,
       pricePerUnit,
@@ -357,7 +313,7 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
           propertyType === 'plot'
             ? landType
             : `${bhk} flat${isFlatRent ? ' for rent' : ''}`
-        } located in prime ${locality}, Chennai. Verified clear title, compliant with CMDA/DTCP standards and ready for quick ${
+        } located in ${trimmedAddress}, Chennai. Verified clear title, compliant with CMDA/DTCP standards and ready for quick ${
           isFlatRent ? 'occupation' : 'registration'
         }.`,
       highlights: [
@@ -377,7 +333,7 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
         'Tar Blacktop Road Frontage',
       ],
       nearbyLandmarks: [
-        { name: locality, distance: 'Immediate' },
+        { name: derivedLocality, distance: 'Immediate' },
         { name: 'Nearest Chennai Metro / Bus Junction', distance: '1.2 km' },
       ],
       possession: propertyType === 'plot'
@@ -389,7 +345,7 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
       uds: propertyType === 'plot' ? plotUds : flatUds,
       waterSource,
       roadWidth,
-      googleMapsUrl: googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locality + ' Chennai')}`,
+      googleMapsUrl: googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmedAddress + ', Chennai')}`,
       landType: propertyType === 'plot' ? landType : undefined,
       carParking: propertyType === 'plot' ? undefined : carParking,
       liftAccess: propertyType === 'plot' ? undefined : liftAccess,
@@ -467,14 +423,14 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
             <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
               {isEditing ? (
                 <>
-                  Your changes to <strong>"{title}"</strong> in <strong>{locality}</strong> have
-                  been saved and are now live on the RJ Land Ventures platform.
+                  Your changes to <strong>"{title}"</strong> at <strong>{address || locality}</strong> have
+                  been saved in the RJ Land Ventures listing catalog.
                 </>
               ) : (
                 <>
-                  Your property <strong>"{title}"</strong> in <strong>{locality}</strong> is now
-                  live with photos, specifications, and Google Maps pin on the RJ Land Ventures
-                  platform.
+                  Your property <strong>"{title}"</strong> at <strong>{address || locality}</strong> is now
+                  live with photos, specifications, and location details on the RJ Land Ventures
+                  Chennai listings.
                 </>
               )}
             </p>
@@ -598,6 +554,28 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
                 </label>
               </div>
 
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-2">
+                  Property Highlight Name (shown on card image top-left)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {propertyCategoryOptions.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setPropertyCategory(name)}
+                      className={`px-2.5 py-1.5 text-[11px] font-semibold rounded-lg border transition-colors ${
+                        propertyCategory === name
+                          ? 'bg-slate-900 text-white border-slate-900'
+                          : 'bg-white text-slate-700 border-slate-300 hover:border-amber-500 hover:text-slate-900'
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Photo Thumbnails Strip */}
               {photos.length > 0 && (
                 <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 pt-1">
@@ -631,138 +609,84 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
                 </div>
               )}
 
-              {/* Quick Preset Photos for Chennai Properties */}
-              <div className="text-[11px] text-slate-500 pt-1 flex flex-wrap items-center gap-1.5">
-                <span className="font-semibold text-slate-700">Add from sample gallery:</span>
-                <button
-                  type="button"
-                  onClick={() => setPhotos((prev) => [...prev, '/src/assets/images/chennai_coastal_land_1794240292550.jpg'])}
-                  className="px-2 py-0.5 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-[10px]"
-                >
-                  + ECR Coastal Land
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPhotos((prev) => [...prev, '/src/assets/images/chennai_villa_plot_1794240292802.jpg'])}
-                  className="px-2 py-0.5 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-[10px]"
-                >
-                  + 40-ft Layout Road
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPhotos((prev) => [...prev, '/src/assets/images/chennai_flat_interior_1794240293038.jpg'])}
-                  className="px-2 py-0.5 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-[10px]"
-                >
-                  + Luxury Flat Interior
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPhotos((prev) => [...prev, '/src/assets/images/chennai_hero_luxury_1794240290491.jpg'])}
-                  className="px-2 py-0.5 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-[10px]"
-                >
-                  + High-Rise Exterior
-                </button>
-              </div>
             </div>
 
-            {/* LOCALITY AND LANDMARK (Takes Google Maps Locations) */}
+            {/* LOCATION DETAILS */}
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5 uppercase tracking-wider">
-                  <GeoAlt className="w-4 h-4 text-emerald-600" />
-                  3. Locality, Landmark & Google Maps Location *
-                </span>
-                <button
-                  type="button"
-                  onClick={detectLocation}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
-                >
-                  <Crosshair className="w-3 h-3" />
-                  <span>Use Device GPS</span>
-                </button>
+              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5 uppercase tracking-wider">
+                <GeoAlt className="w-4 h-4 text-emerald-600" />
+                3. Location Details *
+              </span>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Property Address *
+                </label>
+                <textarea
+                  required
+                  value={address}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setAddress(val);
+                    const first = val.split(',')[0]?.trim();
+                    setLocality(first || val);
+                  }}
+                  placeholder="Enter full property address (door/plot no, street, area, pincode)..."
+                  rows={2}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white resize-none"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    Locality & Landmark Name *
+                    Chennai Zone / Location
                   </label>
                   <input
                     type="text"
-                    required
-                    value={locality}
-                    onChange={(e) => {
-                      setLocality(e.target.value);
-                      setGoogleMapsUrl(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.target.value + ' Chennai')}`);
-                    }}
-                    placeholder="e.g. Sholinganallur Junction, Akkarai Beach ECR..."
+                    list="chennai-zone-options"
+                    value={zone}
+                    onChange={(e) => setZone(e.target.value)}
+                    placeholder="Select or type a new location/zone"
                     className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white"
                   />
+                  <datalist id="chennai-zone-options">
+                    <option value="OMR Corridor" />
+                    <option value="ECR Coast" />
+                    <option value="Central Chennai" />
+                    <option value="South Chennai" />
+                    <option value="West Chennai" />
+                    <option value="GST & Suburbs" />
+                  </datalist>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Choose a suggestion or type a new Chennai location/zone.
+                  </p>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    Chennai Zone / Micro-Market
-                  </label>
-                  <select
-                    value={zone}
-                    onChange={(e) => setZone(e.target.value as any)}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white"
-                  >
-                    <option value="OMR Corridor">OMR Corridor (Siruseri / Sholinganallur)</option>
-                    <option value="ECR Coast">ECR Coast (Akkarai / Kovalam)</option>
-                    <option value="Central Chennai">Central Chennai (Anna Nagar / T.Nagar)</option>
-                    <option value="South Chennai">South Chennai (Velachery / Medavakkam)</option>
-                    <option value="West Chennai">West Chennai (Porur / Poonamallee)</option>
-                    <option value="GST & Suburbs">GST & Suburbs (Guduvanchery / Tambaram)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Google Maps Location URL Field */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-[11px] font-bold text-slate-700">
-                    Google Maps Pin / Coordinates Link
-                  </label>
-                  {googleMapsUrl && (
-                    <a
-                      href={googleMapsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[10px] text-blue-600 hover:underline flex items-center gap-1 font-semibold"
-                    >
-                      Test Map Pin <BoxArrowUpRight className="w-3 h-3" />
-                    </a>
-                  )}
-                </div>
-                <input
-                  type="url"
-                  value={googleMapsUrl}
-                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
-                  placeholder="https://www.google.com/maps/search/?api=1&query=..."
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white font-mono text-[11px]"
-                />
-              </div>
-
-              {/* Quick Popular Chennai Landmark Buttons */}
-              <div className="space-y-1.5 pt-1">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Quick Select Chennai Verified Landmarks:
-                </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {chennaiLandmarks.map((lm) => (
-                      <button
-                        key={lm.name}
-                        type="button"
-                        onClick={() => handleSelectLandmark(lm)}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300 text-slate-700 text-left transition-colors"
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-slate-700">
+                      Google Maps Pin / Coordinates Link
+                    </label>
+                    {googleMapsUrl && (
+                      <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-blue-600 hover:underline flex items-center gap-1 font-semibold"
                       >
-                        <GeoAlt className="w-3 h-3 text-emerald-600 shrink-0" />
-                        <span>{lm.name}</span>
-                      </button>
-                    ))}
+                        Open Map <BoxArrowUpRight className="w-3 h-3" />
+                      </a>
+                    )}
                   </div>
+                  <input
+                    type="url"
+                    value={googleMapsUrl}
+                    onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                    placeholder="https://maps.google.com/... or coordinates link"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white font-mono text-[11px]"
+                  />
+                </div>
               </div>
             </div>
 
