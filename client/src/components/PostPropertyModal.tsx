@@ -72,6 +72,7 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
   const propertyCategoryOptions = [
     'Gated Villa Communities',
     'Premium Villa Plots',
+    'Beachside Luxury',
     'Luxury Residences',
     'Residential Plots',
     'Skyline Apartments',
@@ -87,6 +88,10 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
     'Integrated Township Plots',
   ];
 
+  // Benefits (manually added tags shown on property cards)
+  const [benefits, setBenefits] = useState<string[]>([]);
+  const [benefitInput, setBenefitInput] = useState('');
+
   // Photos State
   const [photos, setPhotos] = useState<string[]>([
     '/src/assets/images/chennai_villa_plot_1794240292802.jpg',
@@ -94,7 +99,11 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
 
   // Land & Plot Specific Fields
   const [landType, setLandType] = useState<string>('CMDA Gated Community Plot');
-  const [plotUds, setPlotUds] = useState<number>(1200); // UDS in sq.ft
+  const [totalPlots, setTotalPlots] = useState<string>('');
+  const [plotSizes, setPlotSizes] = useState<string[]>([]);
+  const [plotSizeInput, setPlotSizeInput] = useState<string>('');
+  const [plotUds, setPlotUds] = useState<string>('');
+  const [plotUdsTouched, setPlotUdsTouched] = useState<boolean>(false);
   const [carParking, setCarParking] = useState<string>('Dedicated Covered Parking');
   const [liftAccess, setLiftAccess] = useState<boolean>(false);
   const [cctvAccess, setCctvAccess] = useState<boolean>(true);
@@ -109,7 +118,8 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
   const [floorNumber, setFloorNumber] = useState<string>('3rd Floor of 8 Floors');
   const [underConstruction, setUnderConstruction] = useState<boolean>(false);
   const [handoverDate, setHandoverDate] = useState<string>('2026-12-15');
-  const [flatUds, setFlatUds] = useState<number>(550);
+  const [flatUds, setFlatUds] = useState<string>('');
+  const [flatUdsTouched, setFlatUdsTouched] = useState<boolean>(false);
 
   const isFlatRent = propertyType === 'flat' && propertyStatus === 'For Rent';
 
@@ -143,9 +153,15 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
       setSellerPhone('');
       setDescription('');
       setShowDetailsInView(true);
+      setBenefits([]);
+      setBenefitInput('');
       setPhotos(['/src/assets/images/chennai_villa_plot_1794240292802.jpg']);
       setLandType('CMDA Gated Community Plot');
-      setPlotUds(1200);
+      setTotalPlots('');
+      setPlotSizes([]);
+      setPlotSizeInput('');
+      setPlotUds('');
+      setPlotUdsTouched(false);
       setCarParking('Dedicated Covered Parking');
       setLiftAccess(false);
       setCctvAccess(true);
@@ -158,7 +174,8 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
       setFloorNumber('3rd Floor of 8 Floors');
       setUnderConstruction(false);
       setHandoverDate('2026-12-15');
-      setFlatUds(550);
+      setFlatUds('');
+      setFlatUdsTouched(false);
       return;
     }
 
@@ -180,11 +197,17 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
     setSellerPhone(property.sellerPhone || '');
     setDescription(property.description || '');
     setShowDetailsInView(property.showDetailsInView !== false);
+    setBenefits(property.benefits ?? []);
+    setBenefitInput('');
     setPhotos(
       property.gallery && property.gallery.length > 0 ? property.gallery : [property.image]
     );
     setLandType(property.landType || 'CMDA Gated Community Plot');
-    setPlotUds(property.uds ?? property.areaSqFt);
+    setTotalPlots(property.totalPlots || '');
+    setPlotSizes(property.plotSizes ?? []);
+    setPlotSizeInput('');
+    setPlotUds(property.uds !== undefined && property.uds !== null ? String(property.uds) : '');
+    setPlotUdsTouched(property.uds !== undefined && property.uds !== null);
     setCarParking(property.carParking || 'Dedicated Covered Parking');
     setLiftAccess(property.liftAccess ?? false);
     setCctvAccess(property.cctvAccess ?? true);
@@ -202,7 +225,8 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
     setFloorNumber(property.floorNumber || '3rd Floor of 8 Floors');
     setUnderConstruction(property.underConstruction ?? false);
     setHandoverDate(property.handoverDate || '2026-12-15');
-    setFlatUds(property.uds ?? 550);
+    setFlatUds(property.uds !== undefined && property.uds !== null ? String(property.uds) : '');
+    setFlatUdsTouched(property.uds !== undefined && property.uds !== null);
   }, [isOpen, editingProperty]);
 
   if (!isOpen) return null;
@@ -251,6 +275,39 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
 
   const removePhoto = (index: number) => {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addBenefit = () => {
+    const value = benefitInput.trim();
+    if (!value) return;
+    setBenefits((prev) => (prev.includes(value) ? prev : [...prev, value]));
+    setBenefitInput('');
+  };
+
+  const removeBenefit = (index: number) => {
+    setBenefits((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const parsePlotSizeValue = (value: string) => {
+    const n = parseFloat(value.replace(/[^\d.]/g, ''));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const addPlotSize = () => {
+    const value = plotSizeInput.trim();
+    if (!value) return;
+    const next = [...plotSizes, value];
+    setPlotSizes(next);
+    setPlotSizeInput('');
+    const sum = next.reduce((acc, item) => acc + parsePlotSizeValue(item), 0);
+    if (sum > 0) setAreaSqFt(sum);
+  };
+
+  const removePlotSize = (index: number) => {
+    const next = plotSizes.filter((_, i) => i !== index);
+    setPlotSizes(next);
+    const sum = next.reduce((acc, item) => acc + parsePlotSizeValue(item), 0);
+    if (sum > 0) setAreaSqFt(sum);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -324,14 +381,22 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
           ? `Land Type: ${landType} · Parking: ${carParking}`
           : `${propertyStatus} · ${bedrooms} Bedrooms · ${bathrooms} Bathrooms · ${underConstruction ? 'Under Construction' : 'Ready to Move'}`,
       ],
-      amenities: [
-        'Clear Computerized Patta',
-        propertyType === 'plot' ? `Car Parking: ${carParking}` : 'Covered Car Parking',
-        `Lift Access: ${liftAccess ? 'Available' : 'No Lift'}`,
-        `CCTV Surveillance: ${cctvAccess ? 'Installed' : 'Standard Security'}`,
-        'Good Potable Water',
-        'Tar Blacktop Road Frontage',
-      ],
+      benefits,
+      amenities: propertyType === 'plot'
+        ? [
+            'Clear Computerized Patta',
+            `Car Parking: ${carParking}`,
+            `Water Source: ${waterSource}`,
+            `Road Frontage: ${roadWidth}`,
+          ]
+        : [
+            'Clear Computerized Patta',
+            `Car Parking: ${carParking}`,
+            `Lift Access: ${liftAccess ? 'Available' : 'No Lift'}`,
+            `CCTV Surveillance: ${cctvAccess ? 'Installed' : 'Not Available'}`,
+            `Water Source: ${waterSource}`,
+            `Road Frontage: ${roadWidth}`,
+          ],
       nearbyLandmarks: [
         { name: derivedLocality, distance: 'Immediate' },
         { name: 'Nearest Chennai Metro / Bus Junction', distance: '1.2 km' },
@@ -342,11 +407,18 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
           ? 'Ready to Move'
           : (underConstruction ? `Under Construction (Handover ${handoverDate})` as any : 'Ready to Move'),
       isVerified: true,
-      uds: propertyType === 'plot' ? plotUds : flatUds,
+      uds: (() => {
+        const raw = propertyType === 'plot' ? plotUds : flatUds;
+        const touched = propertyType === 'plot' ? plotUdsTouched : flatUdsTouched;
+        const n = parseFloat(raw);
+        return touched && Number.isFinite(n) && n > 0 ? n : undefined;
+      })(),
       waterSource,
       roadWidth,
       googleMapsUrl: googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmedAddress + ', Chennai')}`,
-      landType: propertyType === 'plot' ? landType : undefined,
+      landType: propertyType === 'plot' ? (landType.trim() || undefined) : undefined,
+      totalPlots: propertyType === 'plot' ? (totalPlots.trim() || undefined) : undefined,
+      plotSizes: propertyType === 'plot' && plotSizes.length > 0 ? plotSizes : undefined,
       carParking: propertyType === 'plot' ? undefined : carParking,
       liftAccess: propertyType === 'plot' ? undefined : liftAccess,
       cctvAccess: propertyType === 'plot' ? undefined : cctvAccess,
@@ -357,6 +429,7 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
       sellerName: sellerName || undefined,
       sellerPhone: sellerPhone || undefined,
       showDetailsInView,
+      isSold: editingProperty?.isSold,
     };
 
     try {
@@ -754,66 +827,154 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
                   Land & Plot Specifications
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Land Type */}
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Land Type *
-                    </label>
-                    <select
-                      value={landType}
-                      onChange={(e) => setLandType(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white font-medium"
-                    >
-                      <option value="Residential Villa Plot">Residential Villa Plot</option>
-                      <option value="CMDA Gated Community Plot">CMDA Gated Community Plot</option>
-                      <option value="DTCP Township Plot">DTCP Township Plot</option>
-                      <option value="Commercial Land">Commercial Main Road Land</option>
-                      <option value="Agricultural / Farm Land">Agricultural / Farm Land</option>
-                      <option value="Industrial Land">Industrial Land</option>
-                    </select>
+                <div className="p-3 bg-white border border-amber-200 rounded-xl space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Land Type *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={landType}
+                        onChange={(e) => setLandType(e.target.value)}
+                        placeholder="e.g. Residential Villa Plot"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white font-medium"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Total Plots
+                      </label>
+                      <input
+                        type="text"
+                        value={totalPlots}
+                        onChange={(e) => setTotalPlots(e.target.value)}
+                        placeholder="e.g. 20"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white tabular-nums"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Total Sq.Ft *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        inputMode="numeric"
+                        value={areaSqFt === 0 ? '' : areaSqFt}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/[^\d.]/g, '');
+                          setAreaSqFt(raw === '' ? 0 : Number(raw));
+                        }}
+                        placeholder="e.g. 4800"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white tabular-nums font-semibold"
+                      />
+                      <span className="text-[10px] text-amber-800 font-medium mt-0.5 block">
+                        {areaSqFt > 0 ? `= ${(areaSqFt / 2400).toFixed(2)} Ground (${(areaSqFt / 435.6).toFixed(2)} Cents)` : 'Enter manually or add plots below'}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Each Plot Sq.Ft */}
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Each Plot Area (Sq.Ft) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="300"
-                      max="100000"
-                      value={areaSqFt}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setAreaSqFt(val);
-                        setPlotUds(val);
-                      }}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white tabular-nums font-semibold"
-                    />
-                    <span className="text-[10px] text-amber-800 font-medium mt-0.5 block">
-                      = {(areaSqFt / 2400).toFixed(2)} Ground ({(areaSqFt / 435.6).toFixed(2)} Cents)
-                    </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Water Source
+                      </label>
+                      <input
+                        type="text"
+                        value={waterSource}
+                        onChange={(e) => setWaterSource(e.target.value)}
+                        placeholder="e.g. Sweet Groundwater at 25 ft / Borewell"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none"
+                      />
+                    </div>
                   </div>
 
-                  {/* UDS for Plot */}
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      UDS Extent (Sq.Ft)
+                      Each Plot Sq.Ft
                     </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={plotUds}
-                      onChange={(e) => setPlotUds(Number(e.target.value))}
-                      placeholder="e.g. 1200 sq.ft (100% Land Share)"
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white tabular-nums"
-                    />
-                    <span className="text-[10px] text-slate-500 mt-0.5 block">
-                      Individual land ownership share
-                    </span>
+                    <p className="text-[10px] text-slate-500 mb-2">
+                      Type each plot size (e.g. 1200, 2400) and click Add. Total is calculated in one box.
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={plotSizeInput}
+                        onChange={(e) => setPlotSizeInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addPlotSize();
+                          }
+                        }}
+                        placeholder="e.g. 1200"
+                        className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={addPlotSize}
+                        className="inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors whitespace-nowrap"
+                      >
+                        <PlusCircle className="w-3.5 h-3.5" />
+                        Add
+                      </button>
+                    </div>
+                    <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                      {plotSizes.length > 0 ? (
+                        <>
+                          <div className="flex flex-wrap gap-2">
+                            {plotSizes.map((size, idx) => (
+                              <span
+                                key={`${size}-${idx}`}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-slate-800 bg-white border border-slate-300 rounded-lg"
+                              >
+                                <span>{size} sq.ft</span>
+                                <button
+                                  type="button"
+                                  onClick={() => removePlotSize(idx)}
+                                  className="text-slate-500 hover:text-rose-600 transition-colors"
+                                  aria-label={`Remove plot size ${size}`}
+                                  title="Remove"
+                                >
+                                  <XLg className="w-3 h-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                          <div className="mt-2 text-[11px] font-bold text-amber-900">
+                            Total: {plotSizes.reduce((acc, item) => acc + parsePlotSizeValue(item), 0).toLocaleString('en-IN')} sq.ft
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-[10px] text-slate-500">No individual plot sizes added.</div>
+                      )}
+                    </div>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    UDS Extent (Sq.Ft)
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={plotUds}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^\d.]/g, '');
+                      setPlotUds(raw);
+                      setPlotUdsTouched(true);
+                    }}
+                    placeholder="e.g. 1200"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white tabular-nums"
+                  />
+                  <span className="text-[10px] text-slate-500 mt-0.5 block">
+                    Individual land ownership share (manual)
+                  </span>
                 </div>
               </div>
             )}
@@ -827,28 +988,19 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Configuration BHK */}
+                  {/* Configuration */}
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Configuration *
                     </label>
-                    <select
+                    <input
+                      type="text"
+                      required
                       value={bhk}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setBhk(value);
-                        const count = parseInt(value, 10);
-                        if (!Number.isNaN(count)) setBedrooms(count);
-                      }}
+                      onChange={(e) => setBhk(e.target.value)}
+                      placeholder="e.g. 3 BHK Luxury"
                       className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white font-medium"
-                    >
-                      <option value="1 BHK">1 BHK Compact</option>
-                      <option value="2 BHK">2 BHK Regular</option>
-                      <option value="2.5 BHK">2.5 BHK Study</option>
-                      <option value="3 BHK">3 BHK Luxury</option>
-                      <option value="3.5 BHK">3.5 BHK Sky Villa</option>
-                      <option value="4 BHK">4 BHK Signature</option>
-                    </select>
+                    />
                   </div>
 
                   {/* Building Age */}
@@ -856,17 +1008,14 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Building Age *
                     </label>
-                    <select
+                    <input
+                      type="text"
+                      required
                       value={buildingAge}
                       onChange={(e) => setBuildingAge(e.target.value)}
+                      placeholder="e.g. Brand New (Under 1 Year)"
                       className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white font-medium"
-                    >
-                      <option value="Brand New (Under 1 Year)">Brand New (Under 1 Year)</option>
-                      <option value="1 - 3 Years Old">1 - 3 Years Old</option>
-                      <option value="3 - 5 Years Old">3 - 5 Years Old</option>
-                      <option value="5 - 10 Years Old">5 - 10 Years Old</option>
-                      <option value="10+ Years Old">10+ Years Old</option>
-                    </select>
+                    />
                   </div>
 
                   {/* Which Floor */}
@@ -891,17 +1040,15 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Bedrooms *
                     </label>
-                    <select
+                    <input
+                      type="number"
+                      required
+                      min={0}
                       value={bedrooms}
                       onChange={(e) => setBedrooms(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none bg-white font-medium"
-                    >
-                      {[1, 2, 3, 4, 5, 6].map((count) => (
-                        <option key={count} value={count}>
-                          {count} Bedroom{count > 1 ? 's' : ''}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="e.g. 3"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none bg-white font-medium tabular-nums"
+                    />
                   </div>
 
                   {/* Bathrooms */}
@@ -909,17 +1056,15 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Bathrooms *
                     </label>
-                    <select
+                    <input
+                      type="number"
+                      required
+                      min={0}
                       value={bathrooms}
                       onChange={(e) => setBathrooms(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none bg-white font-medium"
-                    >
-                      {[1, 2, 3, 4, 5].map((count) => (
-                        <option key={count} value={count}>
-                          {count} Bathroom{count > 1 ? 's' : ''}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="e.g. 2"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none bg-white font-medium tabular-nums"
+                    />
                   </div>
 
                   {/* Property Status: Sale or Rent */}
@@ -982,14 +1127,24 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
                       UDS (Undivided Share) Sq.Ft
                     </label>
                     <input
-                      type="number"
-                      min="100"
+                      type="text"
+                      inputMode="numeric"
                       value={flatUds}
-                      onChange={(e) => setFlatUds(Number(e.target.value))}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^\d.]/g, '');
+                        setFlatUds(raw);
+                        setFlatUdsTouched(true);
+                      }}
+                      placeholder="e.g. 550"
                       className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-white tabular-nums"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">
-                      {areaSqFt > 0 ? `${Math.round((flatUds / areaSqFt) * 100)}% UDS Ratio` : ''}
+                      {(() => {
+                        const udsNum = parseFloat(flatUds);
+                        return areaSqFt > 0 && Number.isFinite(udsNum) && udsNum > 0
+                          ? `${Math.round((udsNum / areaSqFt) * 100)}% UDS Ratio`
+                          : 'Enter manually';
+                      })()}
                     </span>
                   </div>
 
@@ -1131,8 +1286,77 @@ export const PostPropertyModal: React.FC<PostPropertyModalProps> = ({
                     </div>
                   </div>
                 </div>
+
+                {/* Water Source */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Water Source
+                  </label>
+                  <input
+                    type="text"
+                    value={waterSource}
+                    onChange={(e) => setWaterSource(e.target.value)}
+                    placeholder="e.g. Sweet Groundwater at 25 ft / Metro + Borewell"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
+                  />
+                </div>
               </div>
             )}
+
+            {/* Benefits */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5 uppercase tracking-wider">
+                <CheckLg className="w-4 h-4 text-amber-600" />
+                Benefits (shown inside property details)
+              </span>
+              <p className="text-[10px] text-slate-500">
+                Type details like Configuration, Building Age, Floor, Bedrooms, Bathrooms, Total Area, or luxury count, then click Add.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={benefitInput}
+                  onChange={(e) => setBenefitInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addBenefit();
+                    }
+                  }}
+                  placeholder="e.g. Configuration: 3 BHK, Bedrooms: 3, Bathrooms: 2, 5 Luxuries"
+                  className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={addBenefit}
+                  className="inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors whitespace-nowrap"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  Add
+                </button>
+              </div>
+              {benefits.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {benefits.map((benefit, idx) => (
+                    <span
+                      key={`${benefit}-${idx}`}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-slate-800 bg-white border border-slate-300 rounded-lg"
+                    >
+                      <span>{benefit}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeBenefit(idx)}
+                        className="text-slate-500 hover:text-rose-600 transition-colors"
+                        aria-label={`Remove benefit ${benefit}`}
+                        title="Remove"
+                      >
+                        <XLg className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Approvals, Facing & Utilities */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

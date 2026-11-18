@@ -47,6 +47,9 @@ export interface Property {
   roadWidth: string;
   googleMapsUrl?: string;
   landType?: string;
+  totalPlots?: string;
+  /** Individual plot sizes entered manually for land/plot listings (sq.ft or as typed). */
+  plotSizes?: string[];
   carParking?: string;
   liftAccess?: boolean;
   cctvAccess?: boolean;
@@ -54,6 +57,10 @@ export interface Property {
   floorNumber?: string;
   underConstruction?: boolean;
   handoverDate?: string;
+  /** Mark a property as sold (shows SOLD badge on listing cards). */
+  isSold?: boolean;
+  /** Manually added benefit tags shown on property cards. */
+  benefits?: string[];
 }
 
 export const CHENNAI_PROPERTIES: Property[] = [
@@ -595,7 +602,7 @@ export const CHENNAI_PROPERTIES: Property[] = [
     isVerified: true,
     waterSource: 'Sweet Potable Groundwater at 25 Feet',
     roadWidth: '30 Feet Concrete Tar Road',
-  }
+  },
 ];
 
 export const CHENNAI_MICRO_MARKETS = [

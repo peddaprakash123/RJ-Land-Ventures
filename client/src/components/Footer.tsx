@@ -18,7 +18,12 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPostProperty }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
           <div className="lg:col-span-2 space-y-4">
-            <Link to="/" className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-4 shadow-sm sm:px-6 sm:py-5">
+            <button
+              type="button"
+              onClick={goTop}
+              className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-4 shadow-sm sm:px-6 sm:py-5"
+              aria-label="Go to home"
+            >
               <img
                 src="/images/rj-land-ventures-mark.png?v=4"
                 alt="RJ Land Ventures logo"
@@ -34,7 +39,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPostProperty }) => {
                   Chennai Lands &amp; Flats
                 </span>
               </span>
-            </Link>
+            </button>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
               RJ Land Ventures is Chennai's premier real estate discovery platform specializing in verified CMDA and DTCP approved land parcels, coastal villa plots in ECR, and luxury flats across OMR and Greater Chennai.
             </p>

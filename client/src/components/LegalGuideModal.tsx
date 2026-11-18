@@ -21,7 +21,7 @@ export const LegalGuideModal: React.FC<LegalGuideModalProps> = ({ isOpen, onClos
               <FileEarmarkCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold">Chennai Buyerâ€™s Legal & Due Diligence Guide</h3>
+              <h3 className="text-lg font-bold">Chennai Buyer's Legal & Due Diligence Guide</h3>
               <p className="text-xs text-slate-300">
                 Official Tamil Nadu Government verification protocols for land plots and apartments
               </p>
@@ -141,17 +141,17 @@ export const LegalGuideModal: React.FC<LegalGuideModalProps> = ({ isOpen, onClos
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                   <div className="font-bold text-slate-900">CMDA Approved Layouts</div>
                   <ul className="space-y-1.5 text-slate-600">
-                    <li>â€¢ Required inside Greater Chennai Corporation and expanding CMA radius.</li>
-                    <li>â€¢ Mandates minimum 30-ft internal roads and 10% Open Space Reservation (OSR) handed over to local body.</li>
-                    <li>â€¢ Recognized by all nationalized banks (SBI, Canara, Indian Bank) for instant construction loans.</li>
+                    <li>- Required inside Greater Chennai Corporation and expanding CMA radius.</li>
+                    <li>- Mandates minimum 30-ft internal roads and 10% Open Space Reservation (OSR) handed over to local body.</li>
+                    <li>- Recognized by all nationalized banks (SBI, Canara, Indian Bank) for instant construction loans.</li>
                   </ul>
                 </div>
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                   <div className="font-bold text-slate-900">DTCP Approved Layouts</div>
                   <ul className="space-y-1.5 text-slate-600">
-                    <li>â€¢ Standard for fast-growing peripheral towns along GST, Bangalore Highway & ECR.</li>
-                    <li>â€¢ Never buy unapproved or "panchayat approved" agricultural lands without DTCP conversion.</li>
-                    <li>â€¢ Both CMDA and DTCP projects must have mandatory <strong>TNRERA Registration</strong>.</li>
+                    <li>- Standard for fast-growing peripheral towns along GST, Bangalore Highway & ECR.</li>
+                    <li>- Never buy unapproved or "panchayat approved" agricultural lands without DTCP conversion.</li>
+                    <li>- Both CMDA and DTCP projects must have mandatory <strong>TNRERA Registration</strong>.</li>
                   </ul>
                 </div>
               </div>
@@ -172,7 +172,7 @@ export const LegalGuideModal: React.FC<LegalGuideModalProps> = ({ isOpen, onClos
               <h5 className="font-semibold text-slate-900">How to inspect on TNREGINET:</h5>
               <div className="space-y-2 text-xs text-slate-600">
                 <p>1. Access <strong>tnreginet.gov.in</strong> (Tamil Nadu Inspector General of Registration).</p>
-                <p>2. Select "E-Services" â†’ "Encumbrance Certificate" â†’ "View EC".</p>
+                <p>2. Select "E-Services" &rarr; "Encumbrance Certificate" &rarr; "View EC".</p>
                 <p>3. Input Zone, District, Sub-Registrar Office (SRO) jurisdiction, and Village.</p>
                 <p>4. Input Survey Number and specify the start year (e.g. 1993 to current date).</p>
                 <p>5. Download the digitally signed Encumbrance Certificate for zero government cost.</p>
@@ -187,17 +187,17 @@ export const LegalGuideModal: React.FC<LegalGuideModalProps> = ({ isOpen, onClos
                   Why UDS (Undivided Share) is the true wealth in Chennai Flats
                 </h4>
                 <p className="text-slate-700 text-xs leading-relaxed">
-                  A flat structure depreciates over 30â€“50 years, but the land beneath it appreciates perpetually. In Chennai, the land title you own is called the <strong>Undivided Share of Land (UDS)</strong>.
+                  A flat structure depreciates over 30-50 years, but the land beneath it appreciates perpetually. In Chennai, the land title you own is called the <strong>Undivided Share of Land (UDS)</strong>.
                 </p>
               </div>
 
               <div className="p-4 bg-slate-900 text-white rounded-xl space-y-2">
                 <div className="text-xs text-amber-400 font-mono">Standard Chennai UDS Formula:</div>
                 <div className="font-mono text-sm py-2 px-3 bg-slate-800 rounded">
-                  UDS = (Individual Super Built-up Area / Total Project Built-up Area) Ã— Total Land Extent
+                  UDS = (Individual Super Built-up Area / Total Project Built-up Area) x Total Land Extent
                 </div>
                 <p className="text-xs text-slate-300">
-                  Target a UDS ratio of at least <strong>40% to 50%</strong>. For instance, a 1,200 sq.ft flat should ideally have 500â€“600 sq.ft of UDS. In boutique developments in Anna Nagar, UDS can be as high as 55%!
+                  Target a UDS ratio of at least <strong>40% to 50%</strong>. For instance, a 1,200 sq.ft flat should ideally have 500-600 sq.ft of UDS. In boutique developments in Anna Nagar, UDS can be as high as 55%!
                 </p>
               </div>
             </div>
@@ -225,7 +225,7 @@ export const LegalGuideModal: React.FC<LegalGuideModalProps> = ({ isOpen, onClos
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span><strong>Groundwater Quality:</strong> Along ECR and South Chennai (Medavakkam / Madipakkam), test for TDS levels. Sweet water is typically available within 20â€“35 feet in prime residential pockets.</span>
+                  <span><strong>Groundwater Quality:</strong> Along ECR and South Chennai (Medavakkam / Madipakkam), test for TDS levels. Sweet water is typically available within 20-35 feet in prime residential pockets.</span>
                 </div>
               </div>
             </div>

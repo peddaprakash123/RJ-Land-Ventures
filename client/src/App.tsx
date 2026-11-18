@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   CHENNAI_PROPERTIES,
@@ -41,6 +41,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Share,
+  HouseDoor,
+  Layers,
+  Droplet,
+  CarFront,
+  Compass,
+  Grid3x3,
+  Map,
 } from 'react-bootstrap-icons';
 
 const getPropertySlug = (prop: Property) =>
@@ -57,11 +64,33 @@ const PropertyCardImage: React.FC<{
 }> = ({ property, isFavorite, onToggleFavorite, onForward }) => {
   const gallery = property.gallery && property.gallery.length > 0 ? property.gallery : [property.image];
   const [index, setIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const hasMultiple = gallery.length > 1;
 
   useEffect(() => {
     setIndex(0);
   }, [property.id]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.6 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!hasMultiple || !isHovered) return;
+    const timer = window.setInterval(() => {
+      setIndex((i) => (i + 1) % gallery.length);
+    }, 2800);
+    return () => window.clearInterval(timer);
+  }, [hasMultiple, isHovered, gallery.length]);
 
   const prev = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -74,21 +103,40 @@ const PropertyCardImage: React.FC<{
 
   return (
     <>
-      <div className="relative aspect-16/10 bg-slate-100 overflow-hidden group/image">
-        <img
-          src={gallery[index]}
-          alt={property.title}
-          referrerPolicy="no-referrer"
-          className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
+      <div
+        ref={containerRef}
+        className="relative aspect-[4/3] overflow-hidden group/image"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div
+          className="flex h-full transition-transform duration-1000 ease-in-out"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          {gallery.map((src, i) => (
+            <div key={`${property.id}-${i}`} className="relative min-w-full w-full h-full flex-shrink-0 overflow-hidden">
+              <img
+                src={src}
+                alt={`${property.title} - image ${i + 1}`}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover object-[center_48%]"
+              />
+            </div>
+          ))}
+        </div>
+        <div
+          className="absolute inset-0 pointer-events-none z-[1]"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%)' }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/25 pointer-events-none" />
 
         {hasMultiple && (
           <>
             <button
               type="button"
               onClick={prev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-100 sm:opacity-0 sm:group-hover/image:opacity-100"
+              className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all ${
+                isInView ? 'max-sm:opacity-100' : 'max-sm:opacity-0 max-sm:pointer-events-none'
+              } sm:opacity-0 sm:group-hover/image:opacity-100 sm:pointer-events-auto`}
               aria-label="Previous image"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -96,7 +144,9 @@ const PropertyCardImage: React.FC<{
             <button
               type="button"
               onClick={next}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-100 sm:opacity-0 sm:group-hover/image:opacity-100"
+              className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all ${
+                isInView ? 'max-sm:opacity-100' : 'max-sm:opacity-0 max-sm:pointer-events-none'
+              } sm:opacity-0 sm:group-hover/image:opacity-100 sm:pointer-events-auto`}
               aria-label="Next image"
             >
               <ChevronRight className="w-4 h-4" />
@@ -104,11 +154,16 @@ const PropertyCardImage: React.FC<{
           </>
         )}
 
-        <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5">
+        <div className="absolute top-3.5 left-3.5 z-10 flex flex-wrap items-center gap-1.5">
           <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-md text-white">
             {property.category}
           </span>
-          {property.type === 'flat' && property.propertyStatus === 'For Rent' && (
+          {property.isSold && (
+            <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-red-600 text-white uppercase tracking-wide shadow-sm">
+              Sold
+            </span>
+          )}
+          {property.type === 'flat' && property.propertyStatus === 'For Rent' && !property.isSold && (
             <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-md text-white bg-blue-600/90">
               For Rent
             </span>
@@ -128,7 +183,7 @@ const PropertyCardImage: React.FC<{
 
         <div className="absolute bottom-3.5 left-3.5 text-white z-10">
           <div className="text-xl font-extrabold tracking-tight tabular-nums">{property.priceDisplay}</div>
-          <div className="text-[11px] text-slate-200 tabular-nums">{property.pricePerUnit}</div>
+          <div className="text-[11px] text-slate-200 tabular-nums">{property.areaSqFt.toLocaleString('en-IN')} sq.ft</div>
         </div>
 
         {isFavorite && (
@@ -174,6 +229,7 @@ export default function App() {
   const [selectedApproval, setSelectedApproval] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'area-desc'>('featured');
   const [quickFilter, setQuickFilter] = useState<'all' | 'plots' | 'flats' | 'omr' | 'ecr' | 'budget'>('all');
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<'all' | 'plot' | 'flat'>('all');
 
   const [activeProperty, setActiveProperty] = useState<Property | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -187,12 +243,11 @@ export default function App() {
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => hasAdminSession());
 
-  const reloadHandledRef = useRef(false);
 
   const isKnownRoute = (pathname: string) => {
     const p = pathname.replace(/\/+$/, '') || '/';
     if (
-      ['/', '/properties', '/flats', '/land', '/plots', '/locations', '/our-services', '/services', '/how-it-works', '/about', '/contact', '/admin'].includes(p)
+      ['/', '/properties', '/flats', '/land', '/plots', '/locations', '/our-services', '/services', '/how-it-works', '/about', '/contact', '/admin', '/post-property'].includes(p)
     ) return true;
     if (/^\/locations\/[^/]+$/.test(p)) return true;
     if (/^\/property\/[^/]+$/.test(p)) return true;
@@ -242,19 +297,16 @@ export default function App() {
 
   const locationSuggestions = useMemo(() => {
     const suggestions = new Set<string>();
-    CHENNAI_MICRO_MARKETS.forEach((m) => { suggestions.add(m.name); suggestions.add(m.code); });
     properties.forEach((p) => {
-      if (p.locality) suggestions.add(p.locality);
-      if (p.zone) suggestions.add(p.zone);
-      if (p.address) suggestions.add(p.address);
-      p.nearbyLandmarks?.forEach((l) => { if (l.name) suggestions.add(l.name); });
+      if (p.locality) suggestions.add(p.locality.trim());
+      if (p.zone) suggestions.add(p.zone.trim());
     });
     return Array.from(suggestions).filter(Boolean);
   }, [properties]);
 
   const filteredLocationSuggestions = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return locationSuggestions.slice(0, 12);
+    if (!q) return [];
     const starts = locationSuggestions.filter((s) => s.toLowerCase().startsWith(q));
     const contains = locationSuggestions.filter(
       (s) => !s.toLowerCase().startsWith(q) && s.toLowerCase().includes(q)
@@ -290,16 +342,6 @@ export default function App() {
 
   // Route + URL state sync (URL reflects navigation; refresh/back-forward work)
   useEffect(() => {
-    const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
-    if (navEntry?.type === 'reload' && !reloadHandledRef.current) {
-      reloadHandledRef.current = true;
-      const p = location.pathname.replace(/\/+$/, '') || '/';
-      if (p !== '/' || location.search || location.hash) {
-        navigate('/', { replace: true });
-        return;
-      }
-    }
-
     const path = location.pathname.replace(/\/+$/, '') || '/';
     const params = new URLSearchParams(location.search);
 
@@ -320,6 +362,13 @@ export default function App() {
       setIsDetailModalOpen(false);
       setActiveProperty(null);
       setPropertyNotFound(false);
+    }
+
+    if (path === '/post-property') {
+      setEditingProperty(null);
+      setIsPostPropertyModalOpen(true);
+    } else if (path !== '/admin' && !editingProperty) {
+      setIsPostPropertyModalOpen(false);
     }
 
     if (path === '/admin') {
@@ -345,6 +394,8 @@ export default function App() {
       setSelectedApproval(params.get('approval') || 'all');
       setSortBy((params.get('sort') as any) || 'featured');
       setQuickFilter((params.get('quick') as any) || 'all');
+      const t = params.get('type');
+      setPropertyTypeFilter(t === 'plot' || t === 'flat' ? t : 'all');
     }
 
     // Section scrolls on route
@@ -354,7 +405,7 @@ export default function App() {
       scrollToId('our-services');
     } else if (path === '/how-it-works') {
       scrollToId('how-it-works');
-    } else if (path === '/') {
+    } else if (path === '/' || path === '/post-property') {
       window.scrollTo({ top: 0, behavior: 'auto' });
     }
   }, [location.pathname, location.search, location.hash, properties]);
@@ -382,9 +433,21 @@ export default function App() {
     setProperties((prev) => prev.map((property) => (property.id === saved.id ? saved : property)));
   };
 
-  const openPostProperty = () => { setEditingProperty(null); setIsPostPropertyModalOpen(true); };
+  const openPostProperty = () => {
+    setEditingProperty(null);
+    if (location.pathname === '/admin') {
+      setIsPostPropertyModalOpen(true);
+    } else {
+      navigate('/post-property');
+    }
+  };
   const openEditProperty = (property: Property) => { setEditingProperty(property); setIsPostPropertyModalOpen(true); };
-  const closePostProperty = () => { setIsPostPropertyModalOpen(false); setEditingProperty(null); };
+  const closePostProperty = () => {
+    const wasRoute = location.pathname === '/post-property';
+    setIsPostPropertyModalOpen(false);
+    setEditingProperty(null);
+    if (wasRoute) navigate('/');
+  };
   const handleAdminLogin = () => {
     startAdminSession();
     setIsAdminAuthenticated(true);
@@ -482,15 +545,21 @@ export default function App() {
     if (selectedZone !== 'all') params.set('zone', selectedZone);
     if (selectedApproval !== 'all') params.set('approval', selectedApproval);
     if (quickFilter !== 'all') params.set('quick', quickFilter);
+    if (propertyTypeFilter !== 'all') params.set('type', propertyTypeFilter);
     navigate(`/properties${params.toString() ? `?${params.toString()}` : ''}`);
   };
 
   const filteredProperties = useMemo(() => {
     return properties.filter((item) => {
+      if (propertyTypeFilter === 'plot' && item.type !== 'plot') return false;
+      if (propertyTypeFilter === 'flat' && item.type !== 'flat') return false;
       if (quickFilter === 'plots' && item.type !== 'plot') return false;
       if (quickFilter === 'flats' && item.type !== 'flat') return false;
       if (quickFilter === 'omr' && item.zone !== 'OMR Corridor') return false;
-      if (quickFilter === 'ecr' && item.zone !== 'ECR Coast') return false;
+      if (quickFilter === 'ecr') {
+        const hay = `${item.title} ${item.locality} ${item.zone} ${item.address} ${item.category}`.toLowerCase();
+        if (!(item.zone === 'ECR Coast' || hay.includes('ecr') || hay.includes('beach') || hay.includes('coast'))) return false;
+      }
       if (quickFilter === 'budget' && item.price > 6000000) return false;
       if (selectedZone !== 'all' && item.zone !== selectedZone) return false;
       if (selectedApproval !== 'all' && !item.approval.includes(selectedApproval)) return false;
@@ -518,10 +587,10 @@ export default function App() {
       if (sortBy === 'area-desc') return b.areaSqFt - a.areaSqFt;
       return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
     });
-  }, [properties, selectedZone, selectedBudget, selectedApproval, searchQuery, sortBy, quickFilter]);
+  }, [properties, propertyTypeFilter, selectedZone, selectedBudget, selectedApproval, searchQuery, sortBy, quickFilter]);
 
   const resetFilters = () => {
-    setSearchQuery(''); setSelectedZone('all'); setSelectedBudget('all'); setSelectedApproval('all'); setQuickFilter('all');
+    setSearchQuery(''); setSelectedZone('all'); setSelectedBudget('all'); setSelectedApproval('all'); setQuickFilter('all'); setPropertyTypeFilter('all');
     navigate('/properties');
   };
 
@@ -542,7 +611,17 @@ export default function App() {
   if (location.pathname.replace(/\/+$/, '') === '/admin' && isAdminAuthenticated) {
     return (
       <>
-        <AdminDashboard properties={properties} onPostProperty={openPostProperty} onEditProperty={openEditProperty} onLogout={handleAdminLogout} onDeleteProperty={handleDeleteProperty} syncError={propertiesError} />
+        <AdminDashboard
+          properties={properties}
+          onPostProperty={openPostProperty}
+          onEditProperty={openEditProperty}
+          onLogout={handleAdminLogout}
+          onDeleteProperty={handleDeleteProperty}
+          onToggleSold={async (property) => {
+            await handleUpdateProperty({ ...property, isSold: !property.isSold });
+          }}
+          syncError={propertiesError}
+        />
         <PostPropertyModal isOpen={isPostPropertyModalOpen} onClose={closePostProperty} onAddProperty={handleAddProperty} onUpdateProperty={handleUpdateProperty} editingProperty={editingProperty} />
         <WhatsAppFloat />
       </>
@@ -565,7 +644,7 @@ export default function App() {
           <div className="border-b border-slate-200 bg-white px-4 py-6">
             <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-3 text-slate-600">
               <div className="w-8 h-8 border-2 border-slate-200 border-t-amber-600 rounded-full animate-spin" aria-hidden="true" />
-              <p className="text-sm font-medium">Loading properties…</p>
+              <p className="text-sm font-medium">Loading properties...</p>
               <p className="text-xs text-slate-500">Please wait while we fetch the latest listings.</p>
             </div>
           </div>
@@ -601,7 +680,7 @@ export default function App() {
 
             <div className="mt-12 bg-white rounded-3xl shadow-xl border border-slate-200 p-4 sm:p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
-                <div className="lg:col-span-5 relative" ref={locationSearchRef}>
+                <div className="lg:col-span-4 relative" ref={locationSearchRef}>
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Locality or Landmark</label>
                   <div className="relative">
                     <GeoAlt className="w-4 h-4 text-amber-600 absolute left-3 top-2.5" />
@@ -630,7 +709,20 @@ export default function App() {
                     </div>
                   )}
                 </div>
-                <div className="lg:col-span-4">
+                <div className="lg:col-span-3">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Property Type</label>
+                  <select
+                    value={propertyTypeFilter}
+                    onChange={(e) => setPropertyTypeFilter(e.target.value as 'all' | 'plot' | 'flat')}
+                    aria-label="Property Type"
+                    className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-xl focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-slate-50"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="plot">Land / Plot</option>
+                    <option value="flat">Apartment / Flat</option>
+                  </select>
+                </div>
+                <div className="lg:col-span-3">
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Budget Range</label>
                   <select value={selectedBudget} onChange={(e) => setSelectedBudget(e.target.value)} aria-label="Budget Range" className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-xl focus:border-amber-600 focus:ring-1 focus:ring-amber-600 outline-none bg-slate-50">
                     <option value="all">Any Price</option>
@@ -640,7 +732,7 @@ export default function App() {
                     <option value="above250">Above ₹2.5 Crore (Luxury & 1+ Ground)</option>
                   </select>
                 </div>
-                <div className="lg:col-span-3">
+                <div className="lg:col-span-2">
                   <button onClick={goToPropertiesSearch} className="w-full py-2.5 px-4 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 whitespace-nowrap">
                     <Search className="w-3.5 h-3.5 text-amber-400" />
                     <span>Find Properties</span>
@@ -737,21 +829,88 @@ export default function App() {
                     />
                     <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                       <div>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1.5">
-                          <span>{property.zone}</span><span aria-hidden="true">·</span><span>{property.facing} Facing</span><span aria-hidden="true">·</span>
-                          <span className="text-emerald-700 font-medium">{property.approval}</span>
-                        </div>
-                        <h3 className="font-bold text-base text-slate-900 hover:text-amber-700 transition-colors line-clamp-1">{property.title}</h3>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-1 line-clamp-1"><GeoAlt className="w-3.5 h-3.5 text-amber-600 shrink-0" /><span>{property.locality}</span></div>
-                        <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <span className="text-[11px] text-slate-400 block">Extent Area</span>
-                            <span className="font-bold text-slate-900 tabular-nums">{property.areaSqFt.toLocaleString('en-IN')} sq.ft</span>
-                            {property.bhk && <span className="text-[10px] text-blue-700 block font-medium">{property.bhk}</span>}
+                        <h3 className="font-bold text-base text-slate-900 hover:text-amber-700 transition-colors line-clamp-1 mb-2">{property.title}</h3>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                          <div className="col-span-2 flex items-start gap-2">
+                            <GeoAlt className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                            <div className="min-w-0">
+                              <div className="text-[10px] text-slate-400 leading-none mb-0.5">Location</div>
+                              <div className="font-semibold text-slate-900 leading-snug">{property.locality}{property.zone ? `, ${property.zone}` : ''}</div>
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-[11px] text-slate-400 block">Approach & Water</span>
-                            <span className="font-semibold text-slate-800 line-clamp-1 text-[11px]">{property.roadWidth}</span>
+                          <div className="flex items-start gap-2">
+                            {property.type === 'plot' ? (
+                              <Map className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                            ) : (
+                              <Building className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                            )}
+                            <div className="min-w-0">
+                              <div className="text-[10px] text-slate-400 leading-none mb-0.5">Property Type</div>
+                              <div className="font-semibold text-slate-900 leading-snug">{property.category || (property.type === 'plot' ? 'Land / Plot' : 'Flat / Apartment')}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <Layers className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
+                            <div className="min-w-0">
+                              <div className="text-[10px] text-slate-400 leading-none mb-0.5">Total Area</div>
+                              <div className="font-semibold text-slate-900 tabular-nums leading-snug">{property.areaSqFt.toLocaleString('en-IN')} sq.ft.</div>
+                            </div>
+                          </div>
+                          {property.type === 'plot' ? (
+                            <>
+                              <div className="flex items-start gap-2">
+                                <Grid3x3 className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                                <div className="min-w-0">
+                                  <div className="text-[10px] text-slate-400 leading-none mb-0.5">Total Plots</div>
+                                  <div className="font-semibold text-slate-900 leading-snug">{property.totalPlots || 'Add total plots'}</div>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <Building className="w-3.5 h-3.5 text-slate-700 shrink-0 mt-0.5" />
+                                <div className="min-w-0">
+                                  <div className="text-[10px] text-slate-400 leading-none mb-0.5">Land Type</div>
+                                  <div className="font-semibold text-slate-900 leading-snug">{property.landType || 'Add land type'}</div>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <Compass className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
+                                <div className="min-w-0">
+                                  <div className="text-[10px] text-slate-400 leading-none mb-0.5">Facing</div>
+                                  <div className="font-semibold text-slate-900 leading-snug">{property.facing ? `${property.facing} Facing` : 'Add facing'}</div>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-start gap-2">
+                                <HouseDoor className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                                <div className="min-w-0">
+                                  <div className="text-[10px] text-slate-400 leading-none mb-0.5">Bedrooms</div>
+                                  <div className="font-semibold text-slate-900 leading-snug">{property.bedrooms !== undefined ? property.bedrooms : 'Add actual count'}</div>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <Droplet className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5" />
+                                <div className="min-w-0">
+                                  <div className="text-[10px] text-slate-400 leading-none mb-0.5">Bathrooms</div>
+                                  <div className="font-semibold text-slate-900 leading-snug">{property.bathrooms !== undefined ? property.bathrooms : 'Add actual count'}</div>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <CarFront className="w-3.5 h-3.5 text-slate-700 shrink-0 mt-0.5" />
+                                <div className="min-w-0">
+                                  <div className="text-[10px] text-slate-400 leading-none mb-0.5">Parking</div>
+                                  <div className="font-semibold text-slate-900 leading-snug">{property.carParking || 'Add actual details'}</div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          <div className="flex items-start gap-2">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                            <div className="min-w-0">
+                              <div className="text-[10px] text-slate-400 leading-none mb-0.5">Approval</div>
+                              <div className="font-semibold text-slate-900 leading-snug">{property.approval}</div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -854,3 +1013,4 @@ export default function App() {
     </div>
   );
 }
+

@@ -7,6 +7,8 @@ import {
   Trash3,
   PencilSquare,
   BoxArrowUpRight,
+  CheckCircle,
+  XCircle,
 } from 'react-bootstrap-icons';
 
 interface AdminDashboardProps {
@@ -15,6 +17,7 @@ interface AdminDashboardProps {
   onEditProperty: (property: Property) => void;
   onLogout: () => void;
   onDeleteProperty: (id: string) => void | Promise<void>;
+  onToggleSold: (property: Property) => void | Promise<void>;
   syncError?: string;
 }
 
@@ -40,6 +43,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onEditProperty,
   onLogout,
   onDeleteProperty,
+  onToggleSold,
   syncError,
 }) => {
   // Only properties posted from this admin console are shown here.
@@ -258,7 +262,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <span className={property.showDetailsInView === false ? 'text-stone-500' : 'text-stone-700'}>
                                 {property.showDetailsInView === false ? 'details private' : 'details public'}
                               </span>
-                              {property.type === 'flat' && property.propertyStatus && (
+                              {property.isSold && (
+                                <>
+                                  <span className="text-stone-300">|</span>
+                                  <span className="font-semibold text-red-700">Sold</span>
+                                </>
+                              )}
+                              {property.type === 'flat' && property.propertyStatus && !property.isSold && (
                                 <>
                                   <span className="text-stone-300">|</span>
                                   <span className="text-stone-700">{property.propertyStatus}</span>
@@ -325,6 +335,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <GeoAlt className="w-3 h-3" /> Map
                             </a>
                           )}
+                          <button
+                            onClick={() => onToggleSold(property)}
+                            className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold border rounded-sm transition-colors ${
+                              property.isSold
+                                ? 'text-emerald-700 border-emerald-300 hover:border-emerald-500 hover:text-emerald-800 bg-white'
+                                : 'text-red-700 border-red-300 hover:border-red-500 hover:text-red-800 bg-white'
+                            }`}
+                            title={property.isSold ? 'Mark as available' : 'Mark as sold'}
+                          >
+                            {property.isSold ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                            <span>{property.isSold ? 'Available' : 'Sold'}</span>
+                          </button>
                           <button
                             onClick={() => onEditProperty(property)}
                             className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold text-stone-800 border border-stone-300 hover:border-amber-600 hover:text-amber-800 bg-white rounded-sm transition-colors"

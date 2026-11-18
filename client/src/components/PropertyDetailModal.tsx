@@ -21,7 +21,12 @@ import {
   Lock,
   ArrowLeft,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  HouseDoor,
+  Telephone,
+  Person,
+  CurrencyRupee,
+  Grid3x3
 } from 'react-bootstrap-icons';
 
 interface PropertyDetailModalProps {
@@ -122,27 +127,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
       <div className="relative flex h-full w-full max-w-4xl flex-col overflow-hidden border-0 border-slate-200 bg-white shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl sm:border">
         {/* Fixed Modal Header */}
         <div className="px-5 sm:px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-800 rounded border border-amber-200">
-              {property.type === 'plot' ? 'Verified Chennai Land / Plot' : 'Verified Flat / Apartment'}
-            </span>
-            {property.type === 'flat' && (
-              <span
-                className={`text-xs font-bold px-2.5 py-1 rounded border ${
-                  property.propertyStatus === 'For Rent'
-                    ? 'bg-blue-50 text-blue-800 border-blue-200'
-                    : 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                }`}
-              >
-                {property.propertyStatus ?? 'For Sale'}
-              </span>
-            )}
-            <span className="hidden sm:inline-block text-xs font-medium text-slate-500">
-              {property.approval}
-            </span>
+          <div className="flex items-center gap-3 min-w-0">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight truncate">{property.title}</h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => onToggleFavorite(property.id)}
               className="p-2 text-slate-500 hover:text-rose-500 transition-colors"
@@ -181,12 +170,28 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           {/* Main Title and Price */}
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                {property.title}
-              </h2>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 mt-1.5">
+              <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                <span className="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-800 rounded border border-amber-200">
+                  {property.type === 'plot' ? 'Verified Land / Plot' : 'Verified Flat / Apartment'}
+                </span>
+                {property.type === 'flat' && (
+                  <span
+                    className={`text-xs font-bold px-2.5 py-1 rounded border ${
+                      property.propertyStatus === 'For Rent'
+                        ? 'bg-blue-50 text-blue-800 border-blue-200'
+                        : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                    }`}
+                  >
+                    {property.propertyStatus ?? 'For Sale'}
+                  </span>
+                )}
+                <span className="text-xs font-medium px-2.5 py-1 bg-slate-50 text-slate-700 rounded border border-slate-200">
+                  {property.approval}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
                 <GeoAlt className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>{property.address}</span>
+                <span>{property.locality}, {property.zone}</span>
                 {property.googleMapsUrl && (
                   <a
                     href={property.googleMapsUrl}
@@ -206,17 +211,16 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 {property.priceDisplay}
               </div>
               <div className="text-xs text-slate-500 font-medium mt-0.5 tabular-nums">
-                {property.pricePerUnit}
+                {property.areaSqFt.toLocaleString('en-IN')} sq.ft
               </div>
             </div>
           </div>
-
           {/* Detailed property information (hidden when the owner selects "No") */}
           <div className={showDetails ? 'space-y-6' : 'hidden'}>
           {/* Image Gallery */}
           <div className="space-y-3">
             <div
-              className="relative aspect-16/9 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 cursor-zoom-in group"
+              className="relative aspect-16/9 rounded-xl overflow-hidden bg-transparent cursor-zoom-in group"
               onClick={() => setIsImageViewerOpen(true)}
               role="button"
               tabIndex={0}
@@ -232,7 +236,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 src={gallery[selectedImageIndex] || property.image}
                 alt={property.title}
                 referrerPolicy="no-referrer"
-                className="w-full h-full object-cover transition-all duration-300"
+                className="w-full h-full object-contain transition-all duration-300"
               />
               {hasMultipleImages && (
                 <>
@@ -255,7 +259,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 </>
               )}
               <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-xs px-2.5 py-1 rounded">
-                Photo {selectedImageIndex + 1} of {gallery.length} · Click to view full
+                Photo {selectedImageIndex + 1} of {gallery.length} - Click to view full
               </div>
             </div>
 
@@ -277,68 +281,6 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             )}
           </div>
 
-          {/* Quick Specifications Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-              <span className="text-[11px] uppercase tracking-wider text-slate-500 font-medium">Area Extent</span>
-              <div className="text-base font-bold text-slate-900 mt-0.5 tabular-nums">
-                {property.areaSqFt.toLocaleString('en-IN')} sq.ft
-              </div>
-              {property.landUnits && (
-                <div className="text-[11px] text-amber-700 font-medium">
-                  {property.landUnits.grounds} Ground ({property.landUnits.cents} Cents)
-                </div>
-              )}
-              {property.bhk && (
-                <div className="text-[11px] text-blue-700 font-medium">
-                  {property.bhk}
-                </div>
-              )}
-              {(property.bedrooms || property.bathrooms) && (
-                <div className="text-[11px] text-slate-600 font-medium">
-                  {property.bedrooms
-                    ? `${property.bedrooms} Bedrooms`
-                    : ''}
-                  {property.bedrooms && property.bathrooms ? ' · ' : ''}
-                  {property.bathrooms
-                    ? `${property.bathrooms} Bathrooms`
-                    : ''}
-                </div>
-              )}
-            </div>
-
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-              <span className="text-[11px] uppercase tracking-wider text-slate-500 font-medium">Facing / Vastu</span>
-              <div className="text-base font-bold text-slate-900 mt-0.5 flex items-center gap-1.5">
-                <Compass className="w-4 h-4 text-slate-600" />
-                {property.facing} Facing
-              </div>
-              <div className="text-[11px] text-emerald-700 font-medium">
-                100% Vastu Compliant
-              </div>
-            </div>
-
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-              <span className="text-[11px] uppercase tracking-wider text-slate-500 font-medium">Possession</span>
-              <div className="text-sm font-bold text-slate-900 mt-0.5">
-                {property.possession}
-              </div>
-              <div className="text-[11px] text-slate-500">
-                Direct Registration
-              </div>
-            </div>
-
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-              <span className="text-[11px] uppercase tracking-wider text-slate-500 font-medium">Statutory Approval</span>
-              <div className="text-sm font-bold text-slate-900 mt-0.5 truncate" title={property.approval}>
-                {property.approval}
-              </div>
-              <div className="text-[11px] text-emerald-700 font-medium">
-                {property.pattaStatus}
-              </div>
-            </div>
-          </div>
-
           {/* Description */}
           <div>
             <h3 className="text-base font-bold text-slate-900 mb-2">About this Property</h3>
@@ -347,118 +289,175 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             </p>
           </div>
 
-          {/* Highlights & Chennai Specifics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-200/70 space-y-2.5">
-              <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wide">
-                Key Features & Chennai Advantages
-              </h4>
-              <ul className="space-y-2 text-xs text-slate-700">
-                {property.highlights.map((h, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                    <span>{h}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 text-xs">
-              <h4 className="font-bold text-slate-900 uppercase tracking-wide">
-                Infrastructure & Utilities
-              </h4>
-              <div className="space-y-2 text-slate-600">
+          {/* Infrastructure & Utilities */}
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 text-xs">
+            <h4 className="font-bold text-slate-900 uppercase tracking-wide">
+              Infrastructure & Utilities
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-amber-700 shrink-0" />
+                <span><strong>Property Type:</strong> {property.type === 'plot' ? 'Verified Land / Plot' : 'Verified Flat / Apartment'}</span>
+              </div>
+              {property.type === 'flat' && (
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span><strong>Status:</strong> {property.propertyStatus ?? 'For Sale'}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <CurrencyRupee className="w-4 h-4 text-slate-700 shrink-0" />
+                <span><strong>Price:</strong> {property.priceDisplay}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <GeoAlt className="w-4 h-4 text-amber-600 shrink-0" />
+                <span><strong>Location:</strong> {property.locality}, {property.zone}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-purple-600 shrink-0" />
+                <span><strong>Area Extent:</strong> {property.areaSqFt.toLocaleString('en-IN')} sq.ft{property.landUnits ? ` (${property.landUnits.grounds} Ground, ${property.landUnits.cents} Cents)` : ''}</span>
+              </div>
+              {property.bhk && (
+                <div className="flex items-center gap-2">
+                  <HouseDoor className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span><strong>Configuration:</strong> {property.bhk}</span>
+                </div>
+              )}
+              {property.bedrooms !== undefined && (
+                <div className="flex items-center gap-2">
+                  <HouseDoor className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span><strong>Bedrooms:</strong> {property.bedrooms}</span>
+                </div>
+              )}
+              {property.bathrooms !== undefined && (
+                <div className="flex items-center gap-2">
+                  <Droplet className="w-4 h-4 text-sky-600 shrink-0" />
+                  <span><strong>Bathrooms:</strong> {property.bathrooms}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-slate-600 shrink-0" />
+                <span><strong>Facing / Vastu:</strong> {property.facing} Facing - 100% Vastu Compliant</span>
+              </div>
+              {property.possession && (
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span><strong>Possession:</strong> {property.possession} - Direct Registration</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Building className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span><strong>Statutory Approval:</strong> {property.approval}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span><strong>Patta Status:</strong> {property.pattaStatus}</span>
+              </div>
+              {property.waterSource && (
                 <div className="flex items-center gap-2">
                   <Droplet className="w-4 h-4 text-blue-600 shrink-0" />
                   <span><strong>Water Source:</strong> {property.waterSource}</span>
                 </div>
+              )}
+              {property.roadWidth && (
                 <div className="flex items-center gap-2">
                   <SignpostSplit className="w-4 h-4 text-slate-600 shrink-0" />
                   <span><strong>Approach Road:</strong> {property.roadWidth}</span>
                 </div>
-                {property.uds && (
-                  <div className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-purple-600 shrink-0" />
-                    <span><strong>Undivided Share of Land (UDS):</strong> {property.uds} sq.ft</span>
+              )}
+              {property.uds ? (
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-purple-600 shrink-0" />
+                  <span><strong>UDS:</strong> {property.uds} sq.ft</span>
+                </div>
+              ) : null}
+              {property.landType && (
+                <div className="flex items-center gap-2">
+                  <Building className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span><strong>Land Type:</strong> {property.landType}</span>
+                </div>
+              )}
+              {property.totalPlots && (
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span><strong>Total Plots:</strong> {property.totalPlots}</span>
+                </div>
+              )}
+              {property.type === 'plot' && property.plotSizes && property.plotSizes.length > 0 && (
+                <div className="flex items-start gap-2 sm:col-span-2">
+                  <Grid3x3 className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                  <span><strong>Each Plot Sq.Ft:</strong> {property.plotSizes.map((s) => `${s} sq.ft`).join(', ')}</span>
+                </div>
+              )}
+              {property.carParking && (
+                <div className="flex items-center gap-2">
+                  <CarFront className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span><strong>Parking:</strong> {property.carParking}</span>
+                </div>
+              )}
+              {property.liftAccess === true && (
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span><strong>Lift Access:</strong> Yes</span>
+                </div>
+              )}
+              {property.cctvAccess === true && (
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span><strong>CCTV Security:</strong> Yes</span>
+                </div>
+              )}
+              {property.buildingAge && (
+                <div className="flex items-center gap-2">
+                  <Building className="w-4 h-4 text-slate-600 shrink-0" />
+                  <span><strong>Building Age:</strong> {property.buildingAge}</span>
+                </div>
+              )}
+              {property.floorNumber && (
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span><strong>Floor:</strong> {property.floorNumber}</span>
+                </div>
+              )}
+              {property.handoverDate && (
+                <div className="flex items-center gap-2">
+                  <Calendar3 className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span><strong>Handover Date:</strong> {property.handoverDate}</span>
+                </div>
+              )}
+              {property.reraNumber && (
+                <div className="flex items-center gap-2">
+                  <Building className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span><strong>TNRERA Number:</strong> {property.reraNumber}</span>
+                </div>
+              )}
+              {property.benefits && property.benefits.length > 0 &&
+                property.benefits.map((item, idx) => (
+                  <div key={`benefit-${idx}`} className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>{item}</span>
                   </div>
-                )}
-                {property.landType && (
-                  <div className="flex items-center gap-2">
-                    <Building className="w-4 h-4 text-amber-600 shrink-0" />
-                    <span><strong>Land Type:</strong> {property.landType}</span>
-                  </div>
-                )}
-                {property.carParking && (
-                  <div className="flex items-center gap-2">
-                    <CarFront className="w-4 h-4 text-blue-600 shrink-0" />
-                    <span><strong>Parking:</strong> {property.carParking}</span>
-                  </div>
-                )}
-                {property.liftAccess !== undefined && (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span><strong>Lift Access:</strong> {property.liftAccess ? 'Yes' : 'No'}</span>
-                  </div>
-                )}
-                {property.cctvAccess !== undefined && (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span><strong>CCTV Security:</strong> {property.cctvAccess ? 'Yes' : 'No'}</span>
-                  </div>
-                )}
-                {property.buildingAge && (
-                  <div className="flex items-center gap-2">
-                    <Building className="w-4 h-4 text-slate-600 shrink-0" />
-                    <span><strong>Building Age:</strong> {property.buildingAge}</span>
-                  </div>
-                )}
-                {property.floorNumber && (
-                  <div className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-blue-600 shrink-0" />
-                    <span><strong>Floor:</strong> {property.floorNumber}</span>
-                  </div>
-                )}
-                {property.handoverDate && (
-                  <div className="flex items-center gap-2">
-                    <Calendar3 className="w-4 h-4 text-amber-600 shrink-0" />
-                    <span><strong>Handover Date:</strong> {property.handoverDate}</span>
-                  </div>
-                )}
-                {property.reraNumber && (
-                  <div className="flex items-center gap-2">
-                    <Building className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span><strong>TNRERA Number:</strong> {property.reraNumber}</span>
-                  </div>
-                )}
-              </div>
+                ))}
             </div>
           </div>
 
-          {/* Amenities Grid */}
-          <div>
-            <h3 className="text-base font-bold text-slate-900 mb-3">Amenities & Infrastructure</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-              {property.amenities.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-slate-700">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></div>
-                  <span>{item}</span>
+          {(property.sellerName || property.sellerPhone) && (
+            <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-2 text-xs">
+              <h4 className="font-bold text-slate-900 uppercase tracking-wide">Seller Verification & Direct Inquiry</h4>
+              {property.sellerName && (
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Person className="w-4 h-4 text-slate-600 shrink-0" />
+                  <span><strong>Name:</strong> {property.sellerName}</span>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Nearby Chennai Landmarks */}
-          <div>
-            <h3 className="text-base font-bold text-slate-900 mb-3">Strategic Chennai Connectivity</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              {property.nearbyLandmarks.map((lm, idx) => (
-                <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  <div className="font-bold text-slate-900">{lm.name}</div>
-                  <div className="text-amber-700 font-semibold mt-1 tabular-nums">{lm.distance}</div>
+              )}
+              {property.sellerPhone && (
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Telephone className="w-4 h-4 text-slate-600 shrink-0" />
+                  <span><strong>Phone:</strong> {property.sellerPhone}</span>
                 </div>
-              ))}
+              )}
             </div>
-          </div>
+          )}
           </div>
 
           {!showDetails && (
@@ -514,7 +513,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               <span>Back</span>
             </button>
             <div className="text-xs sm:text-sm text-white/80 truncate px-3">
-              {property.title} · {selectedImageIndex + 1} / {gallery.length}
+              {property.title} - {selectedImageIndex + 1} / {gallery.length}
             </div>
             <button
               onClick={() => setIsImageViewerOpen(false)}
@@ -557,3 +556,4 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     </div>
   );
 };
+
